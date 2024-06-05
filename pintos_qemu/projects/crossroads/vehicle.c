@@ -86,21 +86,29 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	}
 
 	/* lock next position */
-	// lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	} else {
-		if(vi == 'b' && !(pos_cur.row == 4 && pos_cur.col == 4)){
-			/* release current position */
-			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		}
-		else{
-			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		}
+		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
+
 	/* update position */
 	vi->position = pos_next;
+
+	int dead_enter_row = deadzone_in[vi->start - 'A'][0];
+	int dead_enter_col = deadzone_in[vi->start - 'A'][1];
+	
+	if(pos_cur.row == dead_enter_row && pos_cur.col == dead_enter_col){
+		if(deadzone_cnt >= 7){
+			vi->position = pos_cur;
+		}
+		else{
+			deadzone_cnt++;
+		}
+	}
 	
 	return 1;
 }
