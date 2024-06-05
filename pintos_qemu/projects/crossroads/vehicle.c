@@ -97,17 +97,15 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
-
-	if(deadzone_cnt >= 7 && !is_deadzone) return -1;
-	
-	if(deadzone_cnt >= 7 
-	&& dead_in_row == pos_cur.row && dead_in_col == pos_cur.col) return -1;
-
-	if(dead_in_row == pos_cur.row && dead_in_col == pos_cur.col){
-		deadzone_cnt++;
-	}
 	if(dead_out_row == pos_cur.row && dead_out_col == pos_cur.col){
 		deadzone_cnt--;
+	}
+	if(deadzone_cnt >= 7){
+		if(!is_deadzone) return -1;
+		if(dead_in_row == pos_cur.row && dead_in_col == pos_cur.col) return -1;
+	}
+	if(dead_in_row == pos_cur.row && dead_in_col == pos_cur.col){
+		deadzone_cnt++;
 	}
 
 	/* lock next position */
