@@ -99,8 +99,9 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	} else if(arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col)){
-		if(deadzone_check[vi->id - 'A'])
+		if(!deadzone_check[vi->id - 'A']){
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+		}
 	}
 	else {
 		/* release current position */
@@ -112,6 +113,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	if(arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col) && !deadzone_check[vi->id - 'A']){
 		lock_acquire(&vi->map_locks[pos_cur.row][pos_cur.col]);
 		deadzone_check[vi->id - 'A'] = true;
+		vi->position = pos_cur;
 	}
 	if(arr_contains(deadzone_out, 4, pos_cur.row, pos_cur.col)){
 		deadzone_check[vi->id - 'A'] = false;
