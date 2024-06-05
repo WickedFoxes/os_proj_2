@@ -108,9 +108,9 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	}
-	else if(deadzone_cnt >= 7){
+	else if(!now_deadzone && next_deadzone){
 		// 현재 deadzone이 아니며, 다음에도 deadzone이 아닌 경우
-		if( !(!now_deadzone && next_deadzone) )
+		if(deadzone_cnt < 7)
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
 	else{
