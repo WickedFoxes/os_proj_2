@@ -99,7 +99,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 	
-	int flag = 0;
+	bool flag = false;
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
@@ -114,11 +114,13 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	else{
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		flag = 1;
+		flag = true;
 	} 
 
 	/* update position */
 	if(flag) vi->position = pos_next;
+	else vi->position = pos_cur;
+	
 	return 1;
 }
 
