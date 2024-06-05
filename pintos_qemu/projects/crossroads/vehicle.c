@@ -7,6 +7,11 @@
 #include "projects/crossroads/map.h"
 #include "projects/crossroads/ats.h"
 
+// count num of vehicle in deadlock_zone
+static int deadlock_zone_cnt = 0;
+int deadlock_zone_len = 8;
+int deadlock_zone[][2] = {{2,2}, {2,3}, {2,4}, {3,2}, {3,4}, {4,2}, {4,3}, {4,4}};
+
 /* path. A:0 B:1 C:2 D:3 */
 const struct position vehicle_path[4][4][12] = {
 	/* from A */ {
@@ -59,6 +64,7 @@ static int is_position_outside(struct position pos)
 /* return 0:termination, 1:success, -1:fail */
 static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 {
+	if(deadlock_zone_cnt >= 7) return 0;
 	struct position pos_cur, pos_next;
 
 	pos_next = vehicle_path[start][dest][step];
@@ -84,6 +90,22 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
+
+	// check pos_cur and pos_next is in of deadlock_zone
+	int cur_deadlock_zone_check = 0;
+	int next_deadlock_zone_check = 0;
+	for(int i=0; i<deadlock_zone_len; i++){
+		if(pos_cur.row == deadlock_zone[i][0] && pos_cur.col == deadlock_zone[i][1]){
+			cur_deadlock_zone_check = 1;
+		}
+		if(pos_next.row == deadlock_zone[i][0] && pos_next.col == deadlock_zone[i][1]){
+			next_deadlock_zone_check = 1;
+		}
+	}
+	// calculate deadlock_zone_cnt
+	if(cur_deadlock_zone_check &&  !next_deadlock_zone_check) deadlock_zone_cnt--;
+	if(!cur_deadlock_zone_check &&  next_deadlock_zone_check) deadlock_zone_cnt++;
+	
 	/* update position */
 	vi->position = pos_next;
 	
