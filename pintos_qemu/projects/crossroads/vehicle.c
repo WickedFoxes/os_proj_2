@@ -85,6 +85,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
+	bool flag = false;
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 	if (vi->state == VEHICLE_STATUS_READY) {
@@ -93,19 +94,16 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	} else if(deadzone_in[vidx][0] == pos_cur.row && deadzone_in[vidx][1] == pos_cur.col){
 		if(!deadzone_check[vidx]){
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-			/* update position */
-			vi->position = pos_next;
 		}
-		else{
-			vi->position = pos_cur;
-		}
+		else flag = true;
 	}
 	else {
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		/* update position */
-		vi->position = pos_next;
 	}
+	/* update position */
+	vi->position = pos_next;
+	if(flag) vi->position = pos_cur;
 	
 	
 	// deadzone에 처음 들어오면 true 처리
