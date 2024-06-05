@@ -44,9 +44,10 @@ void map_draw()
 
 	for (i=0; i<7; i++) {
 		for (j=0; j<7; j++) {
-			if(map_draw_default[i][j] == 'X'){
-				printf("%c ", map_draw_default[i][j]);
-			}
+			printf("%c ", map_draw_default[i][j]);
+			// if(map_draw_default[i][j] == 'X'){
+			// 	printf("%c ", map_draw_default[i][j]);
+			// }
 			// else{
 			// 	for(int vehicle_inx=0; vehicle_inx<thread_cnt; vehicle_inx++){
 			// 		if(vehicle_info[vehicle_inx].position.row == i && vehicle_info[vehicle_inx].position.col == j){
