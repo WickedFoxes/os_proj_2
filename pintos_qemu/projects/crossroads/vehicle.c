@@ -75,16 +75,16 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	pos_next = vehicle_path[start][dest][step];
 	pos_cur = vi->position;
 
-	// if (vi->state == VEHICLE_STATUS_RUNNING) {
-	// 	/* check termination */
-	// 	if (is_position_outside(pos_next)) {
-	// 		/* actual move */
-	// 		vi->position.row = vi->position.col = -1;
-	// 		/* release previous */
-	// 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-	// 		return 0;
-	// 	}
-	// }
+	if (vi->state == VEHICLE_STATUS_RUNNING) {
+		/* check termination */
+		if (is_position_outside(pos_next)) {
+			/* actual move */
+			vi->position.row = vi->position.col = -1;
+			/* release previous */
+			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+			return 0;
+		}
+	}
 
 	// bool is_vichle_in_deadzone = false;
 	// for(int i=0; i<8; i++){
@@ -93,16 +93,16 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	// 	}
 	// }
 
-	// /* lock next position */
-	// lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+	/* lock next position */
+	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 
-	// if (vi->state == VEHICLE_STATUS_READY) {
-	// 	/* start this vehicle */
-	// 	vi->state = VEHICLE_STATUS_RUNNING;
-	// }
-	// else {
-	// 	lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-	// }
+	if (vi->state == VEHICLE_STATUS_READY) {
+		/* start this vehicle */
+		vi->state = VEHICLE_STATUS_RUNNING;
+	}
+	else {
+		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+	}
 
 	/* update position */
 	vi->position = pos_next;
