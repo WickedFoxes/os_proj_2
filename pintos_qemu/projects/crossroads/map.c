@@ -36,7 +36,7 @@ const char map_draw_default[7][7] = {
 };
 
 
-void map_draw(vehicle_info *vehicle_info, int number_of_vehicle)
+void map_draw()
 {
 	int i, j;
 	int isFound = 0;
@@ -48,7 +48,7 @@ void map_draw(vehicle_info *vehicle_info, int number_of_vehicle)
 				printf("%c ", map_draw_default[i][j]);
 			}
 			else{
-				for(int vehicle_inx=0; vehicle_inx<number_of_vehicle; vehicle_inx++){
+				for(int vehicle_inx=0; vehicle_inx<thread_cnt; vehicle_inx++){
 					if(vehicle_info[vehicle_inx].position.row == i && vehicle_info[vehicle_inx].position.col == j){
 						isFound = 1; break;
 					}
