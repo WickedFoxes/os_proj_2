@@ -100,9 +100,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	}
-	else if(is_vichle_in_deadzone){
-
-	} 
+	// else if(is_vichle_in_deadzone){} 
 	else {
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
