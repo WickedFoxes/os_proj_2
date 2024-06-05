@@ -91,6 +91,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			return 0;
 		}
 	}
+	return 1;
 
 	if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check) return 1;	
 	/* lock next position */
