@@ -108,23 +108,14 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	}
-	else if(deadzone_cnt >= 4){
+	else if(deadzone_cnt >= 7){
 		// 현재 deadzone이 아니며, 다음에도 deadzone이 아닌 경우
-		if(!now_deadzone && !next_deadzone){
+		if( !(!now_deadzone && next_deadzone) )
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		}
-		// 현재 deadzone이며, 다음에도 deadzone인 경우
-		else if(now_deadzone && next_deadzone){
-			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		}
-		// 현재 deadzone을 탈출하는 경우
-		else if(now_deadzone_out){
-			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		}
 	}
 	else{
 		/* release current position */
-		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);		
+		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	} 
 
 	/* update position */
