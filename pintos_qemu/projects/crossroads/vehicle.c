@@ -91,8 +91,10 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	} else {
-		/* release current position */
-		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+		if(vi->id != 'b'){
+			/* release current position */
+			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+		}
 	}
 	/* update position */
 	vi->position = pos_next;
