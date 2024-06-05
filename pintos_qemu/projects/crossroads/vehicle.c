@@ -8,11 +8,14 @@
 #include "projects/crossroads/ats.h"
 
 // Number of vicechlees that have entered or are about to enter the deadzone
-static int deadzone_cnt = 0;
+static bool deadzone_check[4] = {
+	false, false, false, false
+};
 
 // check vehicle in deadlock_zone
 int deadzone[][2] = {{2,2},{2,3},{2,4},{3,2},{3,4},{4,2},{4,3},{4,4}};
-int deadzone_out[][2] = {{1,4}, {2,1}, {4,5}, {5,2}};
+int deadzone_in[][2] = {{4,2}, {4,4}, {2,4}, {2,2}};
+int deadzone_out[][2] = {{2,1}, {5,2}, {4,5}, {1,4}};
 bool arr_contains(int arr[][2], int size, int row, int col){
 	for(int i=0; i<size; i++){
 		if(arr[i][0] == row && arr[i][1] == col){
@@ -75,6 +78,7 @@ static int is_position_outside(struct position pos)
 static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 {
 	struct position pos_cur, pos_next;
+
 	pos_next = vehicle_path[start][dest][step];
 	pos_cur = vi->position;
 
@@ -89,33 +93,29 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
-	bool now_deadzone = arr_contains(deadzone, 8, pos_cur.row, pos_cur.col);
-	bool now_deadzone_out = arr_contains(deadzone_out, 4, pos_cur.row, pos_cur.col);
-	bool next_deadzone = arr_contains(deadzone, 8, pos_next.row, pos_next.col);
-	
-	// if vehicle out of deadzone
-	if(now_deadzone_out) deadzone_cnt--;
-
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
-	
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
+	} else if(arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col)){
+		if(deadzone_check[vi->id - 'A'])
+			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
-	else if(!now_deadzone && next_deadzone){
-		// if(deadzone_cnt < 7){
-		// 	deadzone_cnt++;
-		// 	lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		// }
-	}
-	else{
+	else {
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-	} 
-
+	}
 	/* update position */
 	vi->position = pos_next;
+	
+	if(arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col) && !deadzone_check[vi->id - 'A']){
+		lock_acquire(&vi->map_locks[pos_cur.row][pos_cur.col]);
+		deadzone_check[vi->id - 'A'] = true;
+	}
+	if(arr_contains(deadzone_out, 4, pos_cur.row, pos_cur.col)){
+		deadzone_check[vi->id - 'A'] = false;
+	}
 
 	return 1;
 }
