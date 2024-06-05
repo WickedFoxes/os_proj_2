@@ -42,6 +42,7 @@ void map_draw()
 	int isFound = 0;
 	clear();
 
+	printf("\n");
 	for (i=0; i<7; i++) {
 		for (j=0; j<7; j++) {
 			printf("%c ", map_draw_default[i][j]);
