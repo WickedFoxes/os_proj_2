@@ -86,13 +86,6 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
-	// bool is_vichle_in_deadzone = false;
-	// for(int i=0; i<8; i++){
-	// 	if(pos_cur.row == deadzone[i][0] && pos_cur.col == deadzone[i][1]){
-	// 		is_vichle_in_deadzone = true;
-	// 	}
-	// }
-
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 
@@ -102,6 +95,13 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	}
 	else {
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+	}
+
+	int dead_in_row = deadzone_in[vi->start-'A'][0];
+	int dead_in_col = deadzone_in[vi->start-'A'][1];
+	if(deadzone_cnt >= 7) return -1;
+	if(dead_in_row == pos_cur.row && dead_in_col == pos_cur.col){
+		deadzone_cnt++;
 	}
 
 	/* update position */
