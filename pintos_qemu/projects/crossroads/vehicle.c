@@ -80,7 +80,6 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			next_deadlock_zone_check = 1;
 		}
 	}
-	if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check) return 1;
 
 	if (vi->state == VEHICLE_STATUS_RUNNING) {
 		/* check termination */
@@ -102,6 +101,8 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
+
+	if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check) return 1;
 
 	// calculate deadlock_zone_cnt
 	if(cur_deadlock_zone_check &&  !next_deadlock_zone_check) deadlock_zone_cnt--;
