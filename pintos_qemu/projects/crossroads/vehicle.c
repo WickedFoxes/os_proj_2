@@ -9,7 +9,7 @@
 
 // Number of vicechlees that have entered or are about to enter the deadzone
 static bool deadzone_check[4] = {
-	false, false, false, false
+	true, true, true, true
 };
 
 // check vehicle in deadlock_zone
@@ -68,7 +68,8 @@ static int is_position_outside(struct position pos)
 /* return 0:termination, 1:success, -1:fail */
 static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 {
-	int vidx = vi->id - 'A';
+	int start = vi->start - 'A';
+	int end = vi->dest - 'A';
 	struct position pos_cur, pos_next;
 
 	pos_next = vehicle_path[start][dest][step];
@@ -85,36 +86,34 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
-	bool flag = false;
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
-	} else if(deadzone_in[vidx][0] == pos_cur.row && deadzone_in[vidx][1] == pos_cur.col){
-		if(!deadzone_check[vidx]){
-			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		}
-		else flag = true;
-	}
-	else {
+	} else {
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
 	/* update position */
 	vi->position = pos_next;
-	if(flag) vi->position = pos_cur;
-	
-	
-	// deadzone에 처음 들어오면 true 처리
-	if(deadzone_in[vidx][0] == pos_cur.row && deadzone_in[vidx][1] == pos_cur.col){
-		deadzone_check[vidx] = true;
-		lock_acquire(&vi->map_locks[pos_cur.row][pos_cur.col]);
+
+	if(deadzone_check[start] 
+	&& pos_cur.row == deadzone_in[start][0] && pos_cur.col == deadzone_in[start][1]){
+		// deadzone으로 처음 진입한 경우
+		// 자신이 진입한 곳 잠금
+		deadzone_check[start] = false;
+		lock_acquire(&vi->map_locks[deadzone_in[start][0]][deadzone_in[start][1]]);
 	}
-	// deadzone을 나가면 다시 false 처리
-	if(deadzone_out[vidx][0] == pos_cur.row && deadzone_out[vidx][1] == pos_cur.col){
-		deadzone_check[vidx] = false;
+	if(deadzone_check[start] 
+	&& pos_cur.row == deadzone_in[end][0] && pos_cur.col == deadzone_in[end][1]){
+		// deadzone에서 빠져나온 경우
+		// 자신이 출발한 곳 잠금 해제
+		deadzone_check[start] = false;
+		lock_release(&vi->map_locks[deadzone_in[start][0]][deadzone_in[start][1]]);
 	}
+
 
 	return 1;
 }
