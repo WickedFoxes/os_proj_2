@@ -13,9 +13,7 @@ static int deadzone_cnt = 0;
 // check vehicle in deadlock_zone
 int deadzone[][2] = {{2,2},{2,3},{2,4},{3,2},{3,4},{4,2},{4,3},{4,4}};
 int deadzone_out[][2] = {{1,4}, {2,1}, {4,5}, {5,2}};
-int deadzone_in[][2] = {{2,2}, {2,4}, {4,2}, {4,4}};
 bool arr_contains(int arr[][2], int size, int row, int col){
-	int check = 0;
 	for(int i=0; i<size; i++){
 		if(arr[i][0] == row && arr[i][1] == col){
 			return true;
@@ -92,15 +90,11 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	}
 
 	bool now_deadzone = arr_contains(deadzone, 8, pos_cur.row, pos_cur.col);
-	bool now_deadzone_in = arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col);
 	bool now_deadzone_out = arr_contains(deadzone_out, 4, pos_cur.row, pos_cur.col);
 	bool next_deadzone = arr_contains(deadzone, 8, pos_next.row, pos_next.col);
-	bool next_deadzone_out = arr_contains(deadzone_out, 4, pos_next.row, pos_next.col);
 	
-	// if vicle enter to deadzone
-	if(!now_deadzone && next_deadzone) deadzone_cnt++;
 	// if vehicle out of deadzone
-	else if(now_deadzone_out) deadzone_cnt--;
+	if(now_deadzone_out) deadzone_cnt--;
 
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
@@ -109,9 +103,11 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		vi->state = VEHICLE_STATUS_RUNNING;
 	}
 	else if(!now_deadzone && next_deadzone){
-		// 현재 deadzone이 아니며, 다음에도 deadzone이 아닌 경우
-		if(deadzone_cnt < 7)
+		if(deadzone_cnt < 7){
+			deadzone_cnt++;
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+			printf("%c : to the deadzone!\n", vi->id);
+		}
 	}
 	else{
 		/* release current position */
