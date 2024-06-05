@@ -68,8 +68,8 @@ static int is_position_outside(struct position pos)
 /* return 0:termination, 1:success, -1:fail */
 static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 {
-	int start = vi->start - 'A';
-	int end = vi->dest - 'A';
+	int v_start = vi->start - 'A';
+	int v_end = vi->dest - 'A';
 	struct position pos_cur, pos_next;
 
 	pos_next = vehicle_path[start][dest][step];
@@ -99,19 +99,19 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	/* update position */
 	vi->position = pos_next;
 
-	if(deadzone_check[start] 
-	&& pos_cur.row == deadzone_in[start][0] && pos_cur.col == deadzone_in[start][1]){
+	if(deadzone_check[v_start] 
+	&& pos_cur.row == deadzone_in[v_start][0] && pos_cur.col == deadzone_in[v_start][1]){
 		// deadzone으로 처음 진입한 경우
 		// 자신이 진입한 곳 잠금
-		deadzone_check[start] = false;
-		lock_acquire(&vi->map_locks[deadzone_in[start][0]][deadzone_in[start][1]]);
+		deadzone_check[v_start] = false;
+		lock_acquire(&vi->map_locks[deadzone_in[v_start][0]][deadzone_in[v_start][1]]);
 	}
-	if(deadzone_check[start] 
-	&& pos_cur.row == deadzone_in[end][0] && pos_cur.col == deadzone_in[end][1]){
+	if(deadzone_check[v_start] 
+	&& pos_cur.row == deadzone_in[v_end][0] && pos_cur.col == deadzone_in[v_end][1]){
 		// deadzone에서 빠져나온 경우
 		// 자신이 출발한 곳 잠금 해제
-		deadzone_check[start] = false;
-		lock_release(&vi->map_locks[deadzone_in[start][0]][deadzone_in[start][1]]);
+		deadzone_check[v_start] = false;
+		lock_release(&vi->map_locks[deadzone_in[v_start][0]][deadzone_in[v_start][1]]);
 	}
 
 
