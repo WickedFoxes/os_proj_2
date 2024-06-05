@@ -93,7 +93,12 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	}
 
 	/* lock next position */
-	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+	if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check){
+		lock_acquire(&vi->map_locks[pos_cur.row][pos_cur.col]);
+	}
+	else{
+		lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+	}
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
@@ -101,8 +106,6 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
-
-	if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check) return 1;
 
 	// calculate deadlock_zone_cnt
 	if(cur_deadlock_zone_check &&  !next_deadlock_zone_check) deadlock_zone_cnt--;
