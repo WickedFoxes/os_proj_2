@@ -97,6 +97,8 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 
 
 	if(deadzone_cnt >= 7 && !is_in_deadzone) return -1;
+	else if(deadzone_cnt >= 7 
+	&& dead_in_row == pos_cur.row && dead_in_col == pos_cur.col) return -1;
 	if(dead_in_row == pos_cur.row && dead_in_col == pos_cur.col){
 		deadzone_cnt++;
 	}
