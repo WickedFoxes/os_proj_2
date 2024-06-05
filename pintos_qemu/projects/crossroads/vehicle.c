@@ -123,6 +123,8 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
+	/* update position */
+	lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	vi->position = pos_next;
 	return 1;
 }
