@@ -91,9 +91,11 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			return 0;
 		}
 	}
-	return 1;
 
-	if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check) return 1;	
+	if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check){
+		printf("%c is stop!!\n", vi->id);
+		return 1;
+	} 
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 	if (vi->state == VEHICLE_STATUS_READY) {
