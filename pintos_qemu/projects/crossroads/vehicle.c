@@ -13,7 +13,7 @@ static bool deadzone_check[4] = {
 };
 
 // check vehicle in deadlock_zone
-int deadzone_in[][2] = {{4,2}, {4,4}, {2,4}, {2,2}};
+int deadzone_in[][2] = {{4,1}, {5,4}, {2,5}, {1,2}};
 int deadzone_out[][2] = {{2,1}, {5,2}, {4,5}, {1,4}};
 
 /* path. A:0 B:1 C:2 D:3 */
