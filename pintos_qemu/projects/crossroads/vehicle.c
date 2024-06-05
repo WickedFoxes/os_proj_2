@@ -112,7 +112,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		deadzone_check[v_start] = false;
 		lock_acquire(&vi->map_locks[deadzone_in[v_start][0]][deadzone_in[v_start][1]]);
 	}
-	if(deadzone_check[v_start] 
+	if(!deadzone_check[v_start]
 	&& pos_cur.row == deadzone_in[v_end][0] && pos_cur.col == deadzone_in[v_end][1]){
 		// deadzone에서 빠져나온 경우
 		// 자신이 출발한 곳 잠금 해제
