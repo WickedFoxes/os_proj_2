@@ -13,17 +13,8 @@ static bool deadzone_check[4] = {
 };
 
 // check vehicle in deadlock_zone
-int deadzone[][2] = {{2,2},{2,3},{2,4},{3,2},{3,4},{4,2},{4,3},{4,4}};
 int deadzone_in[][2] = {{4,2}, {4,4}, {2,4}, {2,2}};
 int deadzone_out[][2] = {{2,1}, {5,2}, {4,5}, {1,4}};
-bool arr_contains(int arr[][2], int size, int row, int col){
-	for(int i=0; i<size; i++){
-		if(arr[i][0] == row && arr[i][1] == col){
-			return true;
-		}
-	}
-	return false;
-}
 
 /* path. A:0 B:1 C:2 D:3 */
 const struct position vehicle_path[4][4][12] = {
@@ -77,6 +68,7 @@ static int is_position_outside(struct position pos)
 /* return 0:termination, 1:success, -1:fail */
 static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 {
+	int vidx = vi->id - 'A';
 	struct position pos_cur, pos_next;
 
 	pos_next = vehicle_path[start][dest][step];
@@ -98,8 +90,8 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
-	} else if(arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col)){
-		if(!deadzone_check[vi->id - 'A']){
+	} else if(deadzone_in[vidx][0] == pos_cur.row && deadzone_in[vidx][1] == pos_cur.col){
+		if(!deadzone_check[vidx]){
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 		}
 	}
@@ -110,12 +102,14 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	/* update position */
 	vi->position = pos_next;
 	
-	if(arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col) && !deadzone_check[vi->id - 'A']){
-		deadzone_check[vi->id - 'A'] = true;
-		vi->position = pos_cur;
+	
+	// deadzone에 처음 들어오면 true 처리
+	if(deadzone_in[vidx][0] == pos_cur.row && deadzone_in[vidx][1] == pos_cur.col){
+		deadzone_check[vidx] = true;
 	}
-	if(arr_contains(deadzone_out, 4, pos_cur.row, pos_cur.col)){
-		deadzone_check[vi->id - 'A'] = false;
+	// deadzone을 나가면 다시 false 처리
+	if(deadzone_out[vidx][0] == pos_cur.row && deadzone_out[vidx][1] == pos_cur.col){
+		deadzone_check[vidx] = false;
 	}
 
 	return 1;
