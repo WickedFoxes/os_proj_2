@@ -86,12 +86,6 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
-	if(!deadzone_check[v_start]
-	&& pos_cur.row == deadzone_in[v_start][0] && pos_cur.col == deadzone_in[v_start][1]){
-		// deadzone으로 진입하려는데 잠긴 경우
-		return 1;
-	}
-
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 
