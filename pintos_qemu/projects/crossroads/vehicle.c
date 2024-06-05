@@ -7,10 +7,22 @@
 #include "projects/crossroads/map.h"
 #include "projects/crossroads/ats.h"
 
-// count num of vehicle in deadlock_zone
-static int deadlock_zone_cnt = 0;
-int deadlock_zone_len = 8;
-int deadlock_zone[][2] = {{2,2}, {2,3}, {2,4}, {3,2}, {3,4}, {4,2}, {4,3}, {4,4}};
+// Number of vicechlees that have entered or are about to enter the deadzone
+static int deadzone_cnt = 0;
+
+// check vehicle in deadlock_zone
+int deadzone[][2] = {{2,2},{2,3},{2,4},{3,2},{3,4},{4,2},{4,3},{4,4}};
+int deadzone_out[][2] = {{1,4}, {2,1}, {4,5}, {5,2}};
+int deadzone_in[][2] = {{2,2}, {2,4}, {4,2}, {4,4}};
+bool arr_contains(int arr[][2], int size, int row, int col){
+	int check = 0;
+	for(int i=0; i<size; i++){
+		if(arr[i][0] == row && arr[i][1] == col){
+			return true;
+		}
+	}
+	return false;
+}
 
 /* path. A:0 B:1 C:2 D:3 */
 const struct position vehicle_path[4][4][12] = {
@@ -65,21 +77,8 @@ static int is_position_outside(struct position pos)
 static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 {
 	struct position pos_cur, pos_next;
-
 	pos_next = vehicle_path[start][dest][step];
 	pos_cur = vi->position;
-
-	// check pos_cur and pos_next is in of deadlock_zone
-	int cur_deadlock_zone_check = 0;
-	int next_deadlock_zone_check = 0;
-	for(int i=0; i<deadlock_zone_len; i++){
-		if(pos_cur.row == deadlock_zone[i][0] && pos_cur.col == deadlock_zone[i][1]){
-			cur_deadlock_zone_check = 1;
-		}
-		if(pos_next.row == deadlock_zone[i][0] && pos_next.col == deadlock_zone[i][1]){
-			next_deadlock_zone_check = 1;
-		}
-	}
 
 	if (vi->state == VEHICLE_STATUS_RUNNING) {
 		/* check termination */
@@ -92,26 +91,41 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
+	bool now_deadzone = arr_contains(deadzone, 8, pos_cur.row, pos_cur.col);
+	bool now_deadzone_in = arr_contains(deadzone_in, 4, pos_cur.row, pos_cur.col);
+	bool now_deadzone_out = arr_contains(deadzone_out, 4, pos_cur.row, pos_cur.col);
+	bool next_deadzone = arr_contains(deadzone, 8, pos_next.row, pos_next.col);
+	bool next_deadzone_out = arr_contains(deadzone_out, 4, pos_next.row, pos_next.col);
+	
+	// if vicle enter to deadzone
+	if(!now_deadzone && next_deadzone) deadzone_cnt++;
+	// if vehicle out of deadzone
+	else if(now_deadzone_out) deadzone_cnt--;
+
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	}
-	else if(deadlock_zone_cnt >= 7){
-		if(cur_deadlock_zone_check == next_deadlock_zone_check){
+	else if(deadzone_cnt >= 7){
+		// 현재 deadzone이 아니며, 다음에도 deadzone이 아닌 경우
+		if(!now_deadzone && !next_deadzone){
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 		}
-		else if(cur_deadlock_zone_check){
+		// 현재 deadzone이며, 다음에도 deadzone인 경우
+		if(now_deadzone && next_deadzone){
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-			deadlock_zone_cnt--;
 		}
-	} 
+		// 현재 deadzone을 탈출하는 경우
+		if(now_deadzone_out){
+			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+		}
+	}
 	else{
 		/* release current position */
-		if(!cur_deadlock_zone_check && next_deadlock_zone_check) deadlock_zone_cnt++;
-		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-	}
+		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);		
+	} 
 
 	/* update position */
 	vi->position = pos_next;
