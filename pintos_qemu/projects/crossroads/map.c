@@ -1,5 +1,5 @@
+
 #include "projects/crossroads/map.h"
-#include "projects/crossroads/vehicle.h"
 
 
 #define ANSI_NONE "\033[0m"
@@ -36,32 +36,19 @@ const char map_draw_default[7][7] = {
 };
 
 
-void map_draw()
+void map_draw(void)
 {
 	int i, j;
-	int isFound = 0;
+
 	clear();
 
-	printf("\n");
 	for (i=0; i<7; i++) {
 		for (j=0; j<7; j++) {
 			printf("%c ", map_draw_default[i][j]);
-			// if(map_draw_default[i][j] == 'X'){
-			// 	printf("%c ", map_draw_default[i][j]);
-			// }
-			// else{
-			// 	for(int vehicle_inx=0; vehicle_inx<thread_cnt; vehicle_inx++){
-			// 		if(vehicle_info[vehicle_inx].position.row == i && vehicle_info[vehicle_inx].position.col == j){
-			// 			isFound = 1; break;
-			// 		}
-			// 	}
-			// 	if(isFound) printf("%c ", vehicle_info.id);
-			// 	else printf("%c ", map_draw_default[i][j]);
-			// }
 		}
 		printf("\n");
 	}
-	printf("unit step: %d\n", crossroads_step++);
+	printf("unit step: %d\n", crossroads_step);
 	gotoxy(0, 0);
 }
 
