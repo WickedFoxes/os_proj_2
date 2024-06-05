@@ -13,6 +13,7 @@ static bool deadzone_check[4] = {
 };
 
 // check vehicle in deadlock_zone
+static int deadzone_cnt = 0;
 int deadzone_in[][2] = {{4,1}, {5,4}, {2,5}, {1,2}};
 int deadzone_out[][2] = {{2,1}, {5,2}, {4,5}, {1,4}};
 
@@ -70,8 +71,8 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 {
 	int v_start = vi->start - 'A';
 	int v_end = vi->dest - 'A';
+	
 	struct position pos_cur, pos_next;
-
 	pos_next = vehicle_path[start][dest][step];
 	pos_cur = vi->position;
 
@@ -92,29 +93,37 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
-	} else {
-		/* release current position */
+	}
+
+	// deadzone으로 진입하고, 아직 deadzone에 4개 이하의 차량이 있는 경우
+	if(pos_cur.row == deadzone_in[v_start][0] && pos_cur.col == deadzone_in[v_start][1]
+	&& deadzone_cnt < 4){	
+		deadzone_cnt++;
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+
+		// 만약 deadzone_cnt >=4 이라면 모든 차량 출입 구역을 막는다.
+		if(deadzone_cnt >=4){
+			for(int i=0; i<4; i++){
+				int r = deadzone_in[i][0];
+				int c = deadzone_in[i][1];
+				lock_acquire(&vi->map_locks[r][c]);
+			}
+		}
 	}
-	/* update position */
+	// deadzone에서 빠져나온 경우
+	if(pos_cur.row == deadzone_in[v_end][0] && pos_cur.col == deadzone_in[v_end][1]){
+		deadzone_cnt--;
+		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+
+		// 모든 구역의 봉인을 푼다.
+		for(int i=0; i<4; i++){
+			int r = deadzone_in[i][0];
+			int c = deadzone_in[i][1];
+			lock_release(&vi->map_locks[r][c]);
+		}
+	}
+
 	vi->position = pos_next;
-
-	if(deadzone_check[v_start] 
-	&& pos_cur.row == deadzone_in[v_start][0] && pos_cur.col == deadzone_in[v_start][1]){
-		// deadzone으로 처음 진입한 경우
-		// 자신이 진입한 곳 잠금
-		deadzone_check[v_start] = false;
-		lock_acquire(&vi->map_locks[deadzone_in[v_start][0]][deadzone_in[v_start][1]]);
-	}
-	if(!deadzone_check[v_start]
-	&& pos_cur.row == deadzone_in[v_end][0] && pos_cur.col == deadzone_in[v_end][1]){
-		// deadzone에서 빠져나온 경우
-		// 자신이 출발한 곳 잠금 해제
-		deadzone_check[v_start] = false;
-		lock_release(&vi->map_locks[deadzone_in[v_start][0]][deadzone_in[v_start][1]]);
-	}
-
-
 	return 1;
 }
 
