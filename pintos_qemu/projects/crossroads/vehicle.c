@@ -14,6 +14,7 @@ static bool deadzone_check[4] = {
 
 // check vehicle in deadlock_zone
 static int deadzone_cnt = 0;
+int deadzone[][2] = {{2,2}, {2,3}, {2,4}, {3,2}, {3,4}, {4,2}, {4,3}, {4,4}};
 int deadzone_in[][2] = {{4,1}, {5,4}, {2,5}, {1,2}};
 int deadzone_out[][2] = {{2,1}, {5,2}, {4,5}, {1,4}};
 
@@ -85,13 +86,24 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
+	bool is_vichle_in_deadzone = false;
+	for(int i=0; i<8; i++){
+		if(pos_cur.row == deadzone[i][0] && pos_cur.row == deadzone[i][1]){
+			is_vichle_in_deadzone = true;
+		}
+	}
+
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
-	} else {
+	}
+	else if(is_vichle_in_deadzone){
+
+	} 
+	else {
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
 
@@ -100,16 +112,6 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 
 	int dead_enter_row = deadzone_in[vi->start - 'A'][0];
 	int dead_enter_col = deadzone_in[vi->start - 'A'][1];
-	
-	if(pos_cur.row == dead_enter_row && pos_cur.col == dead_enter_col){
-		if(deadzone_cnt >= 7){
-			lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
-			vi->position = pos_cur;
-		}
-		else{
-			deadzone_cnt++;
-		}
-	}
 	
 	return 1;
 }
