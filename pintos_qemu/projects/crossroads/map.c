@@ -47,15 +47,15 @@ void map_draw()
 			if(map_draw_default[i][j] == 'X'){
 				printf("%c ", map_draw_default[i][j]);
 			}
-			else{
-				for(int vehicle_inx=0; vehicle_inx<thread_cnt; vehicle_inx++){
-					if(vehicle_info[vehicle_inx].position.row == i && vehicle_info[vehicle_inx].position.col == j){
-						isFound = 1; break;
-					}
-				}
-				if(isFound) printf("%c ", vehicle_info.id);
-				else printf("%c ", map_draw_default[i][j]);
-			}
+			// else{
+			// 	for(int vehicle_inx=0; vehicle_inx<thread_cnt; vehicle_inx++){
+			// 		if(vehicle_info[vehicle_inx].position.row == i && vehicle_info[vehicle_inx].position.col == j){
+			// 			isFound = 1; break;
+			// 		}
+			// 	}
+			// 	if(isFound) printf("%c ", vehicle_info.id);
+			// 	else printf("%c ", map_draw_default[i][j]);
+			// }
 		}
 		printf("\n");
 	}
