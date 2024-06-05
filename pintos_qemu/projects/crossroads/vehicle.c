@@ -106,16 +106,15 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		if(deadzone_cnt < 7){
 			deadzone_cnt++;
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-			printf("%c : to the deadzone!\n", vi->id);
+			vi->position = pos_next;
 		}
 	}
 	else{
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+		/* update position */
+		vi->position = pos_next;
 	} 
-
-	/* update position */
-	vi->position = pos_next;
 	
 	return 1;
 }
