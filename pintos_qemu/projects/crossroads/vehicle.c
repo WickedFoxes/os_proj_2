@@ -92,24 +92,26 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
-	// if(deadlock_zone_cnt >= 7 && !cur_deadlock_zone_check && next_deadlock_zone_check){
-	// 	printf("%c is stop!!\n", vi->id);
-	// 	return 1;
-	// }
-
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
-	} else {
+	}
+	else if(deadlock_zone_cnt >= 7){
+		if(cur_deadlock_zone_check == next_deadlock_zone_check){
+			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+		}
+		else if(cur_deadlock_zone_check){
+			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+			deadlock_zone_cnt--;
+		}
+	} 
+	else{
 		/* release current position */
+		if(!cur_deadlock_zone_check && next_deadlock_zone_check) deadlock_zone_cnt++;
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
-
-	// calculate deadlock_zone_cnt
-	if(cur_deadlock_zone_check &&  !next_deadlock_zone_check) deadlock_zone_cnt--;
-	if(!cur_deadlock_zone_check &&  next_deadlock_zone_check) deadlock_zone_cnt++;
 
 	/* update position */
 	vi->position = pos_next;
