@@ -90,15 +90,17 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	int dead_in_col = deadzone_in[vi->start-'A'][1];
 	bool is_in_deadzone = false;
 	for(int i=0; i<8; i++){
-		if(pos_cur.row == deadzone_in[i][0] && pos_cur.col == deadzone_in[i][1]){
+		if(pos_cur.row == deadzone[i][0] && pos_cur.col == deadzone[i][1]){
 			is_in_deadzone = true;
 		}
 	}
 
 
 	if(deadzone_cnt >= 7 && !is_in_deadzone) return -1;
-	else if(deadzone_cnt >= 7 
+	
+	if(deadzone_cnt >= 7 
 	&& dead_in_row == pos_cur.row && dead_in_col == pos_cur.col) return -1;
+
 	if(dead_in_row == pos_cur.row && dead_in_col == pos_cur.col){
 		deadzone_cnt++;
 	}
