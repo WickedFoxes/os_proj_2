@@ -114,11 +114,11 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 		}
 		// 현재 deadzone이며, 다음에도 deadzone인 경우
-		if(now_deadzone && next_deadzone){
+		else if(now_deadzone && next_deadzone){
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 		}
 		// 현재 deadzone을 탈출하는 경우
-		if(now_deadzone_out){
+		else if(now_deadzone_out){
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 		}
 	}
