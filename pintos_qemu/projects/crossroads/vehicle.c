@@ -98,17 +98,17 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	/* update position */
 	vi->position = pos_next;
 
-	int dead_enter_row = deadzone_in[vi->start - 'A'][0];
-	int dead_enter_col = deadzone_in[vi->start - 'A'][1];
+	// int dead_enter_row = deadzone_in[vi->start - 'A'][0];
+	// int dead_enter_col = deadzone_in[vi->start - 'A'][1];
 	
-	if(pos_cur.row == dead_enter_row && pos_cur.col == dead_enter_col){
-		if(deadzone_cnt >= 7){
-			vi->position = pos_cur;
-		}
-		else{
-			deadzone_cnt++;
-		}
-	}
+	// if(pos_cur.row == dead_enter_row && pos_cur.col == dead_enter_col){
+	// 	if(deadzone_cnt >= 7){
+	// 		vi->position = pos_cur;
+	// 	}
+	// 	else{
+	// 		deadzone_cnt++;
+	// 	}
+	// }
 	
 	return 1;
 }
