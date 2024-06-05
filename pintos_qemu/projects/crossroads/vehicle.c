@@ -103,6 +103,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	
 	if(pos_cur.row == dead_enter_row && pos_cur.col == dead_enter_col){
 		if(deadzone_cnt >= 7){
+			lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 			vi->position = pos_cur;
 		}
 		else{
