@@ -97,8 +97,9 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	if(now_deadzone_out) deadzone_cnt--;
 
 	/* lock next position */
-	bool flag = false;
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+	
+	int flag = 0;
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
@@ -107,17 +108,17 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		if(deadzone_cnt < 7){
 			deadzone_cnt++;
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-			/* update position */
-			vi->position = pos_next;
+			flag = 1;
 		}
 	}
 	else{
 		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-		/* update position */
-		vi->position = pos_next;
+		flag = 1;
 	} 
-	
+
+	/* update position */
+	if(flag) vi->position = pos_next;
 	return 1;
 }
 
